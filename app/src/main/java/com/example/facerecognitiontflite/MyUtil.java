@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Vector;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -246,5 +247,20 @@ public class MyUtil {
             }
         }
         return result;
+    }
+
+    /**
+     * Get Largest Face (if there're two or more faces)
+     * @param boxes : Vector of Box that represent the detected faces in Box data type
+     * @return index of largest face
+     */
+    public static int findLargestFace(Vector<Box> boxes){
+        int idx = 0;
+        if (boxes.size() > 1) {
+            for (int i = 1; i < boxes.size(); i++) {
+                if (boxes.get(i).width() > boxes.get(idx).width()) idx = i;
+            }
+        }
+        return idx;
     }
 }

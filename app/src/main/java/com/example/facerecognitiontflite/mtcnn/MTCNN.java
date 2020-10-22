@@ -15,7 +15,6 @@ import java.util.Vector;
 
 /**
  * MTCNN : Face Detection
- * malikanhar.maulana@wingscorp.com
  */
 public class MTCNN {
     private float factor = 0.709f;

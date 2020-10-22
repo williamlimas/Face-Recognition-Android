@@ -6,7 +6,6 @@ import android.graphics.Point;
 
 /**
  * Face Alignment using face landamarks
- * malikanhar.maulana@wingscorp.com
  */
 public class Align {
 

@@ -47,11 +47,7 @@ public class CameraActivity extends AppCompatActivity {
             {
                 Bitmap bitmap = convertBitmap(mData, mCamera);
                 MainActivity.currentBtn.setImageBitmap(bitmap);
-                if (MainActivity.currentBtn.getId() == R.id.image_button1){
-                    MainActivity.bitmap1 = bitmap;
-                } else {
-                    MainActivity.bitmap2 = bitmap;
-                }
+                MainActivity.bitmap = bitmap;
                 finish();
             }
         });
@@ -203,3 +199,4 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 }
+

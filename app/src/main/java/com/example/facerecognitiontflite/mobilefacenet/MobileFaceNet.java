@@ -2,6 +2,7 @@ package com.example.facerecognitiontflite.mobilefacenet;
 
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import com.example.facerecognitiontflite.MyUtil;
 
@@ -14,21 +15,23 @@ import java.io.IOException;
  * malikanhar.maulana@wingscorp.com
  */
 public class MobileFaceNet {
-    public static final String MODEL_FILE = "EfficientNet_B0.tflite";
+    public static final String MODEL_FILE = "MobileFaceNet_SE.tflite";
+
     /**
      * INPUT_IMAGE_SIZE
-     * - MobileFaceNet, MobileFaceNet_SE, EfficientNet 112
-     * - FaceNet 160
+     * - MobileFaceNet, MobiFace, MobileFaceNet_SE, EfficientNet : 112
+     * - FaceNet : 160
      */
     public static final int INPUT_IMAGE_SIZE = 112;
+
     /**
      * EMBEDDING SIZE
      * - MobileFaceNet 192
-     * - MobileFaceNet_SE 256
-     * - EfficientNet 256
-     * - FaceNet 512
+     * - EfficientNet, MobileFaceNet_SE : 256
+     * - MobiFace, FaceNet : 512
      */
-    public static final int EMBEDDING_SIZE = 512;
+    public static final int EMBEDDING_SIZE = 256;
+
     public static final float THRESHOLD = 0.4f;
 
     private Interpreter interpreter;
@@ -51,9 +54,27 @@ public class MobileFaceNet {
 
         float[][][][] datasets = getTwoImageDatasets(bitmapResize1, bitmapResize2);
         float[][] embeddings = new float[2][EMBEDDING_SIZE];
+
+        long timeStart = System.currentTimeMillis();
         interpreter.run(datasets, embeddings);
+        long timeEnd = System.currentTimeMillis();
+        Log.d("FACE VERIF", "Elapsed time : " + (timeEnd - timeStart));
+
 //        MyUtil.l2Normalize(embeddings, 1e-10);
-        return calculateCosineSimilarity(embeddings);
+        return cosineDistance(embeddings);
+    }
+
+    public float[] generateEmbedding(Bitmap bitmap){
+        Bitmap bitmapResize = Bitmap.createScaledBitmap(bitmap, INPUT_IMAGE_SIZE, INPUT_IMAGE_SIZE,true);
+
+        int[] ddims = {1, INPUT_IMAGE_SIZE, INPUT_IMAGE_SIZE, 3};
+        float[][][][] datasets = new float[ddims[0]][ddims[1]][ddims[2]][ddims[3]];
+
+        datasets[0] = MyUtil.normalizeImage(bitmapResize);
+
+        float[][] embeddings = new float[1][EMBEDDING_SIZE];
+        interpreter.run(datasets, embeddings);
+        return embeddings[0];
     }
 
     /**
@@ -61,7 +82,7 @@ public class MobileFaceNet {
      * @param embeddings : face embeddings
      * @return Embedding distance
      */
-    private float calculateCosineSimilarity(float[][] embeddings){
+    public float cosineDistance(float[][] embeddings){
         float[] embeddings1 = embeddings[0];
         float[] embeddings2 = embeddings[1];
         float dotProduct = 0.0f;
@@ -72,7 +93,8 @@ public class MobileFaceNet {
             normA = (float)(normA + (Math.pow(embeddings1[i], 2.0)));
             normB = (float)(normB + (Math.pow(embeddings1[i], 2.0)));
         }
-        return (float)(1-(dotProduct / (Math.sqrt(normA) * Math.sqrt(normB))));
+        float distance = (float)(1-(dotProduct / (Math.sqrt(normA) * Math.sqrt(normB))));
+        return Math.min(1, Math.max(0, distance));
     }
 
     /**

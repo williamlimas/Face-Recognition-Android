@@ -7,7 +7,6 @@ import static java.lang.Math.max;
 
 /**
  * Bounding Box
- * malikanhar.maulana@wingscorp.com
  */
 public class Box {
     public int[] box;           // left:box[0], top:box[1], right:box[2], bottom:box[3]
@@ -104,9 +103,6 @@ public class Box {
     public boolean transbound(int w, int h) {
         if (box[0] < 0 || box[1] < 0) {
             return true;
-        } else if (box[2] >= w || box[3] >= h) {
-            return true;
-        }
-        return false;
+        } else return box[2] >= w || box[3] >= h;
     }
 }
