@@ -23,7 +23,13 @@ import com.example.facerecognitiontflite.mtcnn.Box;
 import com.example.facerecognitiontflite.mtcnn.MTCNN;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Vector;
 
 public class MainActivity extends AppCompatActivity {
@@ -35,45 +41,50 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton imageButton;
     private ImageView imageView;
     private Button btnCompare;
-    private Button btnRegister;
     private TextView resultTextView;
 
     private SharedPreferences mPref;
-    private Person person;
+    private Person person_wfh;
+    private Person person_wfo;
+
+    private boolean is_wfo = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.activity_main);
         mPref = getPreferences(MODE_PRIVATE);
 
-        loadJSON();
+        person_wfh = loadSharedPreference("Person-WFH", "1012-wfh.json");
+        person_wfo = loadSharedPreference("Person-WFO", "1012-wfo.json");
+
         initContent();
         initTFLiteModel();
         initCamera();
 
-        btnCompare.setOnClickListener(v -> compareFace());
-
-        btnRegister.setOnClickListener(v -> saveEmbedding());
+        // IF WFH
+        if (is_wfo) btnCompare.setOnClickListener(v -> compareFace(person_wfo));
+        else btnCompare.setOnClickListener(v -> compareFace(person_wfh));
+        //
     }
 
-    private void compareFace(){
-        float[] distances = new float[person.getIdx_read()];
+    private void compareFace(Person person){
+        float[] distances = new float[person.getEmbeddingSize()];
         float[][] embeddings = new float[2][MobileFaceNet.EMBEDDING_SIZE];
 
-        if (person.getIdx_read() == 0){
+        if (person.getEmbeddingSize() == 0){
             Toast.makeText(this, "Base data not found", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Bitmap bitmapCrop = cropFace();
+        Bitmap bitmapCrop = cropFace(bitmap);
         if (bitmapCrop == null){
             Toast.makeText(this, "No face detected", Toast.LENGTH_SHORT).show();
             return;
         }
 
         embeddings[0] = mobileFaceNet.generateEmbedding(bitmapCrop);
-        for (int i = 0; i<person.getIdx_read(); i++){
+        for (int i = 0; i<person.getEmbeddingSize(); i++){
             embeddings[1] = person.getEmbedding(i);
             distances[i] = mobileFaceNet.cosineDistance(embeddings);
         }
@@ -100,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
         return idx_min;
     }
 
-    private Bitmap cropFace(){
+    private Bitmap cropFace(Bitmap bitmap){
         if (bitmap == null){
             Toast.makeText(this, "Please take a picture", Toast.LENGTH_SHORT).show();
             return null;
@@ -136,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
         imageButton = findViewById(R.id.image_button);
         imageView = findViewById(R.id.image_view_crop);
         btnCompare = findViewById(R.id.btn_compare_);
-        btnRegister = findViewById(R.id.btn_register_);
         resultTextView = findViewById(R.id.result_text_view_);
     }
 
@@ -159,30 +169,68 @@ public class MainActivity extends AppCompatActivity {
         imageButton.setOnClickListener(listener);
     }
 
-    private void saveEmbedding(){
-        Bitmap bitmapCrop = cropFace();
-        if (bitmapCrop == null){
-            Toast.makeText(this, "No face detected", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        float[] embedding = mobileFaceNet.generateEmbedding(bitmapCrop);
-        person.addEmbedding(embedding);
-        saveJSON();
-    }
-
-    private void loadJSON(){
+    private Person loadSharedPreference(String key, String filename){
         Gson gson = new Gson();
-        String json = mPref.getString("Person", "");
-        person = gson.fromJson(json, Person.class);
+        String json = mPref.getString(key, "");
+        Person person = gson.fromJson(json, Person.class);
         if (person == null)
-            person = new Person();
+            person = parse_json(key, filename);
+        return person;
     }
 
-    private void saveJSON(){
+    private void saveSharedPreference(Person person, String key){
         SharedPreferences.Editor prefsEditor = mPref.edit();
         Gson gson = new Gson();
         String json = gson.toJson(person);
-        prefsEditor.putString("Person", json);
+        prefsEditor.putString(key, json);
         prefsEditor.apply();
+    }
+
+    private Person parse_json(String key, String filename){
+        try {
+            Person person = new Person();
+            JSONObject obj = new JSONObject(loadJSONFromAsset(filename));
+            JSONArray str_embeddings = obj.getJSONArray("embedding");
+
+            for (int i=0; i<str_embeddings.length(); i++){
+                float[] embedding = new float[MobileFaceNet.EMBEDDING_SIZE];
+                int embedding_counter = 0;
+                String str_embedding = str_embeddings.get(i).toString().substring(1);
+
+                int j = 0;
+                while(j<str_embedding.length()){
+                    StringBuilder num = new StringBuilder();
+                    while (str_embedding.charAt(j) != '|'){
+                        num.append(str_embedding.charAt(j));
+                        j += 1;
+                        if (j >= str_embedding.length()) break;
+                    }
+                    j += 1;
+                    embedding[embedding_counter] = (Float.parseFloat(num.toString()));
+                    embedding_counter += 1;
+                }
+                person.addEmbedding(embedding);
+                return person;
+            }
+            saveSharedPreference(person, key);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private String loadJSONFromAsset(String filename){
+        String json = null;
+        try {
+            InputStream is = getAssets().open(filename);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            json = new String(buffer, StandardCharsets.UTF_8);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return json;
     }
 }
