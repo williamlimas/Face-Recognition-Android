@@ -33,7 +33,7 @@ public class MobileFaceNet {
 
     public static final float THRESHOLD = 0.4f;
 
-    private Interpreter interpreter;
+    private final Interpreter interpreter;
 
     public MobileFaceNet(AssetManager assetManager) throws IOException {
         Interpreter.Options options = new Interpreter.Options();

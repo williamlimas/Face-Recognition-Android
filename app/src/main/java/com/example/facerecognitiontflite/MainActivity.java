@@ -55,17 +55,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mPref = getPreferences(MODE_PRIVATE);
 
-        person_wfh = loadSharedPreference("Person-WFH", "1012-wfh.json");
         person_wfo = loadSharedPreference("Person-WFO", "1012-wfo.json");
+        person_wfh = loadSharedPreference("Person-WFH", "1012-wfh.json");
 
         initContent();
         initTFLiteModel();
         initCamera();
 
-        // IF WFH
-        if (is_wfo) btnCompare.setOnClickListener(v -> compareFace(person_wfo));
-        else btnCompare.setOnClickListener(v -> compareFace(person_wfh));
-        //
+        btnCompare.setOnClickListener(v -> {
+            if (is_wfo) compareFace(person_wfo);
+            else compareFace(person_wfh);
+        });
     }
 
     private void compareFace(Person person){
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         float[][] embeddings = new float[2][MobileFaceNet.EMBEDDING_SIZE];
 
         if (person.getEmbeddingSize() == 0){
-            Toast.makeText(this, "Base data not found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Face hasn't been registered offline", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -92,8 +92,10 @@ public class MainActivity extends AppCompatActivity {
         float min_distance = distances[findMinimumDistance(distances)];
 
         if (min_distance < MobileFaceNet.THRESHOLD){
+            // Face Verified
             resultTextView.setTextColor(getResources().getColor(android.R.color.holo_green_light));
         } else {
+            // Face Not Verified
             resultTextView.setTextColor(getResources().getColor(android.R.color.holo_red_light));
         }
         String text = "Cosine Distance : ";
@@ -113,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Bitmap cropFace(Bitmap bitmap){
         if (bitmap == null){
-            Toast.makeText(this, "Please take a picture", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please take a photo", Toast.LENGTH_SHORT).show();
             return null;
         }
 
