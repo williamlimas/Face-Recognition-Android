@@ -38,6 +38,12 @@ public class MTCNN {
         oInterpreter = new Interpreter(MyUtil.loadModelFile(assetManager, MODEL_FILE_ONET), options);
     }
 
+    public void setThreshold(float threshold){
+        this.pNetThreshold = threshold;
+        this.rNetThreshold = threshold + 0.1f;
+        this.oNetThreshold = threshold + 0.1f;
+    }
+
     /**
      * Face Detection
      * @param bitmap : input bitmap image

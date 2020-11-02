@@ -2,15 +2,15 @@
 buildscript {
     ext.kotlin_version = "1.3.72"
     repositories {
+        // Add google repository
         google()
         jcenter()
     }
     dependencies {
         classpath "com.android.tools.build:gradle:4.0.1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
+        // Add google-services dependency
+        classpath 'com.google.gms:google-services:4.3.4'
     }
 }
 
@@ -18,6 +18,10 @@ allprojects {
     repositories {
         google()
         jcenter()
+        // Add Liveness Detection repository
+        maven {
+            url 'https://dl.bintray.com/novanto/LivenessDetection'
+        }
     }
 }
 
