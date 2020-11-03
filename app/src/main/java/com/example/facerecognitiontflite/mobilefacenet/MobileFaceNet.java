@@ -16,19 +16,8 @@ import java.io.IOException;
 public class MobileFaceNet {
     public static final String MODEL_FILE = "MobileFaceNet_SE.tflite";
 
-    /**
-     * INPUT_IMAGE_SIZE
-     * - MobileFaceNet, MobiFace, MobileFaceNet_SE, EfficientNet : 112
-     * - FaceNet : 160
-     */
     public static final int INPUT_IMAGE_SIZE = 112;
 
-    /**
-     * EMBEDDING SIZE
-     * - MobileFaceNet 192
-     * - EfficientNet, MobileFaceNet_SE : 256
-     * - MobiFace, FaceNet : 512
-     */
     public static final int EMBEDDING_SIZE = 256;
 
     public static float THRESHOLD = 0.3f;
@@ -41,10 +30,19 @@ public class MobileFaceNet {
         interpreter = new Interpreter(MyUtil.loadModelFile(assetManager, MODEL_FILE), options);
     }
 
+    /**
+     * Set Mobile FaceNet threshold
+     * @param threshold
+     */
     public void setThreshold(float threshold){
         this.THRESHOLD = threshold;
     }
 
+    /**
+     * Generate Embedding from respective bitmap
+     * @param bitmap : input bitmap image
+     * @return
+     */
     public float[] generateEmbedding(Bitmap bitmap){
         Bitmap bitmapResize = Bitmap.createScaledBitmap(bitmap, INPUT_IMAGE_SIZE, INPUT_IMAGE_SIZE,true);
 

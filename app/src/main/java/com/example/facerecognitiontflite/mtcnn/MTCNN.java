@@ -38,6 +38,10 @@ public class MTCNN {
         oInterpreter = new Interpreter(MyUtil.loadModelFile(assetManager, MODEL_FILE_ONET), options);
     }
 
+    /**
+     * Set MTCNN Threshold
+     * @param threshold
+     */
     public void setThreshold(float threshold){
         this.pNetThreshold = threshold;
         this.rNetThreshold = threshold + 0.1f;

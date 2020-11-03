@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
         initContent();
         initTFLiteModel();
 
+        // TODO : Download .json base data
+
         // TODO : is_wfo assignment with the real condition
         // is_wfo = get_status_wfo
 
