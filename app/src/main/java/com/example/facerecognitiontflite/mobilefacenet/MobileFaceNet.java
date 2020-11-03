@@ -31,7 +31,7 @@ public class MobileFaceNet {
      */
     public static final int EMBEDDING_SIZE = 256;
 
-    public static final float THRESHOLD = 0.4f;
+    public static float THRESHOLD = 0.3f;
 
     private final Interpreter interpreter;
 
@@ -39,6 +39,10 @@ public class MobileFaceNet {
         Interpreter.Options options = new Interpreter.Options();
         options.setNumThreads(4);
         interpreter = new Interpreter(MyUtil.loadModelFile(assetManager, MODEL_FILE), options);
+    }
+
+    public void setThreshold(float threshold){
+        this.THRESHOLD = threshold;
     }
 
     public float[] generateEmbedding(Bitmap bitmap){
