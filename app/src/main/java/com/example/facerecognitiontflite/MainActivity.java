@@ -52,9 +52,9 @@ public class MainActivity extends AppCompatActivity {
         if (is_wfo){
             // Load WFO base data
             person = MyUtil.loadSharedPreference(this, mPref, "Person-WFO", "8495-wfo.json");
-
             // Adjust the MTCNN threshold
             mtcnn.setThreshold(0.55f);
+            // Adjust the Mobile Facenet threshold
             mobileFaceNet.setThreshold(0.4f);
         } else {
             // Load WFH base data
