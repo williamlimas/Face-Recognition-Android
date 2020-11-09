@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         mPref = getPreferences(MODE_PRIVATE);
         if (is_wfo){
             // Load WFO base data
-            person = MyUtil.loadSharedPreference(this, mPref, "Person-WFO", "8495-wfh.json");
+            person = MyUtil.loadSharedPreference(this, mPref, "Person-WFO", "8495-wfo.json");
 
             // Adjust the MTCNN threshold
             mtcnn.setThreshold(0.55f);
@@ -106,8 +106,8 @@ public class MainActivity extends AppCompatActivity {
             // TODO : Add online face verification
         }
 
-        // Check if the person data is not available
-        if (person.getEmbeddingSize() == 0){
+        // Check if the person data is less than the minimum number of base data
+        if (person.getEmbeddingSize() < 3){
             Toast.makeText(this, "Face hasn't been registered offline", Toast.LENGTH_SHORT).show();
             // TODO : Add online face verification
             return;
@@ -136,15 +136,14 @@ public class MainActivity extends AppCompatActivity {
             // TODO : Add action when face is Verified
             Toast.makeText(this, "Face is verified", Toast.LENGTH_SHORT).show();
             resultTextView.setTextColor(getResources().getColor(android.R.color.holo_green_light));
+            resultTextView.setText("Verified");
         } else {
             if (err_verified_counter < TIMEOUT)
                 Toast.makeText(this, "Face is not verified", Toast.LENGTH_SHORT).show();
             err_verified_counter += 1;
+            resultTextView.setText("Not Verified");
             resultTextView.setTextColor(getResources().getColor(android.R.color.holo_red_light));
         }
-        String text = "Cosine Distance : ";
-        text = text + min_distance;
-        resultTextView.setText(text);
     }
 
     /**
