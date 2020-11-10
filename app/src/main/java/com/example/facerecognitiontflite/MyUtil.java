@@ -5,12 +5,10 @@ import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.facerecognitiontflite.mobilefacenet.MobileFaceNet;
 import com.example.facerecognitiontflite.mtcnn.Align;
@@ -31,58 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Vector;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
 public class MyUtil {
-
-    /**
-     * Read pictures from assets
-     * @param context
-     * @param filename
-     * @return
-     */
-    public static Bitmap readFromAssets(Context context, String filename){
-        Bitmap bitmap;
-        AssetManager asm = context.getAssets();
-        try {
-            InputStream is = asm.open(filename);
-            bitmap = BitmapFactory.decodeStream(is);
-            is.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return bitmap;
-    }
-
-    /**
-     * Add margin to rect
-     * @param bitmap
-     * @param rect
-     * @param marginX
-     * @param marginY
-     */
-    public static void rectExtend(Bitmap bitmap, Rect rect, int marginX, int marginY) {
-        rect.left = max(0, rect.left - marginX / 2);
-        rect.right = min(bitmap.getWidth() - 1, rect.right + marginX / 2);
-        rect.top = max(0, rect.top - marginY / 2);
-        rect.bottom = min(bitmap.getHeight() - 1, rect.bottom + marginY / 2);
-    }
-
-    /**
-     * Add margin to rect
-     * Use the same length, increase the width to the same length
-     * @param bitmap
-     * @param rect
-     */
-    public static void rectExtend(Bitmap bitmap, Rect rect) {
-        int width = rect.right - rect.left;
-        int height = rect.bottom - rect.top;
-        int margin = (height - width) / 2;
-        rect.left = max(0, rect.left - margin);
-        rect.right = min(bitmap.getWidth() - 1, rect.right + margin);
-    }
 
     /**
      * Load TFlite model file
@@ -234,36 +181,6 @@ public class MyUtil {
     }
 
     /**
-     * Picture to grayscale
-     * @param bitmap
-     * @return 
-     */
-    public static int[][] convertGreyImg(Bitmap bitmap) {
-        int w = bitmap.getWidth();
-        int h = bitmap.getHeight();
-
-        int[] pixels = new int[h * w];
-        bitmap.getPixels(pixels, 0, w, 0, 0, w, h);
-
-        int[][] result = new int[h][w];
-        int alpha = 0xFF << 24;
-        for(int i = 0; i < h; i++)	{
-            for(int j = 0; j < w; j++) {
-                int val = pixels[w * i + j];
-
-                int red = ((val >> 16) & 0xFF);
-                int green = ((val >> 8) & 0xFF);
-                int blue = (val & 0xFF);
-
-                int grey = (int)((float) red * 0.3 + (float)green * 0.59 + (float)blue * 0.11);
-                grey = alpha | (grey << 16) | (grey << 8) | grey;
-                result[i][j] = grey;
-            }
-        }
-        return result;
-    }
-
-    /**
      * Crop Face
      * @param bitmap : Input bitmap image
      * @param mtcnn : MTCNN Face Detector
@@ -346,6 +263,7 @@ public class MyUtil {
             person = parseJSON(context, filename);
             saveSharedPreference(mPref, person, key);
         }
+        if (person == null) person = new Person();
         return person;
     }
 
@@ -370,7 +288,9 @@ public class MyUtil {
     private static Person parseJSON(Context context, String filename){
         try {
             Person person = new Person();
-            JSONObject obj = new JSONObject(loadJSONFromAsset(context, filename));
+            String str_json = loadJSONFromAsset(context, filename);
+            if (str_json == null) return new Person();
+            JSONObject obj = new JSONObject(str_json);
             JSONArray str_embeddings = obj.getJSONArray("embedding");
 
             for (int i=0; i<str_embeddings.length(); i++){
