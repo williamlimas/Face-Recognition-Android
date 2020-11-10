@@ -6,6 +6,30 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        tools:context=".MainActivity">
+        <Button
+            android:id="@+id/btn_wfh"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="10dp"
+            android:text="WFH"
+            android:scaleType="fitCenter"/>
+        <Button
+            android:id="@+id/btn_wfo"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="10dp"
+            android:text="WFO"
+            android:scaleType="fitCenter"/>
+    </LinearLayout>
+
     <ImageView
         android:id="@+id/image_view"
         android:layout_width="match_parent"
