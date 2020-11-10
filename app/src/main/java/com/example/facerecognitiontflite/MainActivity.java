@@ -12,11 +12,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.facerecognitiontflite.faceantispoof.FaceAntiSpoofing;
+import com.example.facerecognitiontflite.livenessfirebase.LivenessApp;
 import com.example.facerecognitiontflite.mobilefacenet.MobileFaceNet;
 import com.example.facerecognitiontflite.mtcnn.MTCNN;
 import java.io.IOException;
 
-import id.privy.livenessfirebasesdk.LivenessApp;
 import id.privy.livenessfirebasesdk.entity.LivenessItem;
 import id.privy.livenessfirebasesdk.listener.PrivyCameraLivenessCallBackListener;
 
@@ -194,7 +194,10 @@ public class MainActivity extends AppCompatActivity {
             // Load WFO base data
             person = MyUtil.loadSharedPreference(this, mPref, "Person-WFO", nik + "-wfo.json");
         } else {
-            // Load WFH base data
+            // Adjust the MTCNN threshold
+            mtcnn.setThreshold(0.6f);
+            // Adjust the Mobile Facenet threshold
+            mobileFaceNet.setThreshold(0.3f);// Load WFH base data
             person = MyUtil.loadSharedPreference(this, mPref, "Person-WFH", nik + "-wfh.json");
         }
     }
