@@ -52,13 +52,7 @@ class SimpleLivenessActivity : AppCompatActivity() {
             motionInstructions = b.getStringArray(Constant.Keys.MOTION_INSTRUCTIONS)!!
         }
 
-        if (PermissionUtil.with(this).isCameraPermissionGranted) {
-            createCameraSource()
-            startHeadShakeChallenge()
-        }
-        else {
-            PermissionUtil.requestPermission(this, 1, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
-        }
+        startLiveness()
 
         LivenessEventProvider.getEventLiveData().observe(this, Observer {
             it?.let {
@@ -73,6 +67,25 @@ class SimpleLivenessActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    private fun startLiveness(){
+        success = false
+        if (PermissionUtil.with(this).isCameraPermissionGranted) {
+            createCameraSource()
+            startHeadShakeChallenge()
+        }
+        else {
+            PermissionUtil.requestPermission(this, 1, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun restartLiveness(){
+        preview?.stop()
+        LivenessEventProvider.getEventLiveData().postValue(null)
+        success = false
+        startLiveness()
+        startCameraSource()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
