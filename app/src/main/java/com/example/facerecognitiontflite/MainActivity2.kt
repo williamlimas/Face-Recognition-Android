@@ -13,6 +13,7 @@ import androidx.lifecycle.Observer
 import com.example.facerecognitiontflite.faceantispoof.FaceAntiSpoofing
 import com.example.facerecognitiontflite.mobilefacenet.MobileFaceNet
 import com.example.facerecognitiontflite.mtcnn.MTCNN
+import com.google.android.gms.vision.CameraSource.PictureCallback
 import id.privy.livenessfirebasesdk.common.*
 import id.privy.livenessfirebasesdk.event.LivenessEventProvider
 import id.privy.livenessfirebasesdk.vision.VisionDetectionProcessor
@@ -22,11 +23,11 @@ import java.util.*
 
 class MainActivity2 : AppCompatActivity(){
 
-    private val successText = "Berhasil! Silahkan lihat ke kamera lagi untuk mengambil foto"
+    private val successText = "Silahkan lihat ke kamera lagi untuk mengambil foto"
     private val motionInstructions = arrayOf("Lihat ke kiri", "Lihat ke kanan")
     private val MIN_BASE_DATA = 3
     private val TIMEOUT = 3
-    private val is_wfo = true
+    private var is_wfo = false
 
     internal var graphicOverlay: GraphicOverlay? = null
     internal var preview: CameraSourcePreview? = null
@@ -56,7 +57,7 @@ class MainActivity2 : AppCompatActivity(){
 
         // TODO : is_wfo assignment with the real condition
 
-        loadBaseData("69001535")
+        loadBaseData("8495")
 
         startLiveness()
 
@@ -101,7 +102,7 @@ class MainActivity2 : AppCompatActivity(){
     }
 
     private fun startHeadShakeChallenge() {
-        visionDetectionProcessor!!.setVerificationStep(1)
+        visionDetectionProcessor?.setVerificationStep(1)
     }
 
     private fun onHeadShakeEvent() {
@@ -109,7 +110,7 @@ class MainActivity2 : AppCompatActivity(){
             success = true
             motionInstruction.text = successText
 
-            visionDetectionProcessor!!.setChallengeDone(true)
+            visionDetectionProcessor?.setChallengeDone(true)
         }
     }
 
@@ -117,10 +118,12 @@ class MainActivity2 : AppCompatActivity(){
     private fun onDefaultEvent() {
         if (success) {
             Handler().postDelayed({
-                cameraSource!!.takePicture(null, com.google.android.gms.vision.CameraSource.PictureCallback {
+                cameraSource?.takePicture(null, PictureCallback {
+
                     val verified = processBitmap(true, BitmapFactory.decodeByteArray(it, 0, it.size))
                     if (verified) {
                         // TODO : Add action when face is Verified
+                        restartLiveness()
                     } else {
                         restartLiveness()
                     }
@@ -142,14 +145,14 @@ class MainActivity2 : AppCompatActivity(){
 
     override fun onDestroy() {
         super.onDestroy()
-        cameraSource!!.release()
+        cameraSource?.release()
     }
 
     private fun createCameraSource() {
         // If there's no existing cameraSource, create one.
         if (cameraSource == null) {
             cameraSource = CameraSource(this, graphicOverlay)
-            cameraSource!!.setFacing(CameraSource.CAMERA_FACING_FRONT)
+            cameraSource?.setFacing(CameraSource.CAMERA_FACING_FRONT)
         }
 
         val motion = VisionDetectionProcessor.Motion.values()[Random().nextInt(
@@ -166,10 +169,12 @@ class MainActivity2 : AppCompatActivity(){
         }
 
         visionDetectionProcessor = VisionDetectionProcessor()
-        visionDetectionProcessor!!.isSimpleLiveness(true, this, motion)
-        visionDetectionProcessor!!.isDebugMode(isDebug)
+        visionDetectionProcessor?.apply {
+            isSimpleLiveness(true, this@MainActivity2, motion)
+            isDebugMode(isDebug)
+        }
 
-        cameraSource!!.setMachineLearningFrameProcessor(visionDetectionProcessor)
+        cameraSource?.setMachineLearningFrameProcessor(visionDetectionProcessor)
     }
 
     private fun startCameraSource() {
@@ -178,10 +183,10 @@ class MainActivity2 : AppCompatActivity(){
                 if (preview == null) {
                     Log.d("CAMERA SOURCE", "resume: Preview is null")
                 }
-                preview!!.start(cameraSource, graphicOverlay)
+                preview?.start(cameraSource, graphicOverlay)
             } catch (e: IOException) {
                 Log.e("CAMERA SOURCE", "CAMERA SOURCE", e)
-                cameraSource!!.release()
+                cameraSource?.release()
                 cameraSource = null
             }
         }
@@ -191,23 +196,18 @@ class MainActivity2 : AppCompatActivity(){
         if (bitmap != null) {
             if (success) {
                 // Crop face using MTCNN
-                val bitmapCrop = cropFace(BitmapUtils.processBitmap(bitmap))
-                val emptyBitmap = Bitmap.createBitmap(
-                    bitmapCrop.getWidth(),
-                    bitmapCrop.getHeight(),
-                    bitmapCrop.getConfig()
-                )
-                if (bitmapCrop == emptyBitmap) {
+                val bitmapCrop = MyUtil.cropFace(mtcnn,(BitmapUtils.processBitmap(bitmap)))
+                if (bitmapCrop == null) {
                     Toast.makeText(this, "No face detected", Toast.LENGTH_SHORT).show()
                     return false
                 }
                 // Check if the person data is less than the minimum number of base data
                 if (person.embeddingSize < MIN_BASE_DATA) {
-                    Toast.makeText(this, "Face hasn't been registered offline", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(this, "Face hasn't been registered offline", Toast.LENGTH_SHORT).show()
                     // TODO : Add online face verification
                     // return true if verified
                     // return false if not verified
+                    return false
                 }
                 // Doing Face Anti Spoofing only for WFH
                 if (!is_wfo) {
@@ -229,6 +229,7 @@ class MainActivity2 : AppCompatActivity(){
                         // TODO : Add online face verification
                         // return true if verified
                         // return false if not verified
+                        return false
                     } else {
                         Toast.makeText(this, "Face is not verified", Toast.LENGTH_SHORT).show()
                         return false
@@ -242,10 +243,6 @@ class MainActivity2 : AppCompatActivity(){
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         createCameraSource()
-    }
-
-    private fun cropFace(bitmap: Bitmap) : Bitmap {
-        return MyUtil.cropFace(mtcnn, bitmap)
     }
 
     /**
@@ -263,7 +260,9 @@ class MainActivity2 : AppCompatActivity(){
         // Calculate cosine distance
         for (i in 0 until person.embeddingSize) {
             embeddings[1] = person.getEmbedding(i)
-            distances[i] = mobileFaceNet.cosineDistance(embeddings)
+            val distance = mobileFaceNet.cosineDistance(embeddings)
+            Log.d("DIST", distance.toString())
+            distances[i] = distance
         }
 
         // Find the minimum cosine distance
