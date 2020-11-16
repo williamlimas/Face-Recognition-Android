@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -22,7 +23,9 @@ import kotlinx.android.synthetic.main.activity_custom_liveness.*
 import java.io.IOException
 import java.util.*
 
+
 class MainActivity2 : AppCompatActivity(){
+
 
     private val successText = "Silahkan lihat ke kamera lagi untuk mengambil foto"
     private val motionInstructions = arrayOf("Lihat ke kiri", "Lihat ke kanan")
@@ -71,6 +74,10 @@ class MainActivity2 : AppCompatActivity(){
 
                     it.getType() == LivenessEventProvider.LivenessEvent.Type.Default -> {
                         onDefaultEvent()
+                        //set normal brightness
+                        val lp = this.window.attributes
+                        lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+                        this.window.attributes = lp
                     }
                 }
             }
@@ -107,12 +114,22 @@ class MainActivity2 : AppCompatActivity(){
     }
 
     private fun onHeadShakeEvent() {
-        if (!success) {
-            success = true
-            motionInstruction.text = successText
+            if (!success) {
+                success = true
 
-            visionDetectionProcessor?.setChallengeDone(true)
-        }
+                //set max brightness
+                val lp = this.window.attributes
+                lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_FULL
+                this.window.attributes = lp
+
+                motionInstruction.text = successText
+
+                Handler().postDelayed({
+                    visionDetectionProcessor?.setChallengeDone(true)
+                }, 1000)
+
+
+            }
     }
 
     @Suppress("DEPRECATION")
@@ -129,7 +146,7 @@ class MainActivity2 : AppCompatActivity(){
                         restartLiveness()
                     }
                 })
-            }, 600)
+            }, 1000)
         }
     }
 
