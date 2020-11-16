@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -117,9 +118,9 @@ class MainActivity2 : AppCompatActivity(){
     @Suppress("DEPRECATION")
     private fun onDefaultEvent() {
         if (success) {
+            progress_bar.visibility = View.VISIBLE
             Handler().postDelayed({
                 cameraSource?.takePicture(null, PictureCallback {
-
                     val verified = processBitmap(true, BitmapFactory.decodeByteArray(it, 0, it.size))
                     if (verified) {
                         // TODO : Add action when face is Verified
@@ -199,6 +200,7 @@ class MainActivity2 : AppCompatActivity(){
                 val bitmapCrop = MyUtil.cropFace(mtcnn,(BitmapUtils.processBitmap(bitmap)))
                 if (bitmapCrop == null) {
                     Toast.makeText(this, "No face detected", Toast.LENGTH_SHORT).show()
+                    progress_bar.visibility = View.GONE
                     return false
                 }
                 // Check if the person data is less than the minimum number of base data
@@ -207,6 +209,7 @@ class MainActivity2 : AppCompatActivity(){
                     // TODO : Add online face verification
                     // return true if verified
                     // return false if not verified
+                    progress_bar.visibility = View.GONE
                     return false
                 }
                 // Doing Face Anti Spoofing only for WFH
@@ -214,6 +217,7 @@ class MainActivity2 : AppCompatActivity(){
                     val score: Float = faceantispoofing.antiSpoofing(bitmapCrop)
                     if (score > FaceAntiSpoofing.THRESHOLD) {
                         Toast.makeText(this, "Face is spoof", Toast.LENGTH_SHORT).show()
+                        progress_bar.visibility = View.GONE
                         return false
                     }
                 }
@@ -221,6 +225,7 @@ class MainActivity2 : AppCompatActivity(){
                 val verified = verify(bitmapCrop)
                 if (verified) {
                     Toast.makeText(this, "Face is verified", Toast.LENGTH_SHORT).show()
+                    progress_bar.visibility = View.GONE
                     return true
                 } else {
                     err_verified_counter += 1
@@ -229,9 +234,11 @@ class MainActivity2 : AppCompatActivity(){
                         // TODO : Add online face verification
                         // return true if verified
                         // return false if not verified
+                        progress_bar.visibility = View.GONE
                         return false
                     } else {
                         Toast.makeText(this, "Face is not verified", Toast.LENGTH_SHORT).show()
+                        progress_bar.visibility = View.GONE
                         return false
                     }
                 }

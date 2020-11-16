@@ -9,7 +9,7 @@
     <id.privy.livenessfirebasesdk.common.CameraSourcePreview
         android:id="@+id/cameraPreview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -25,26 +25,12 @@
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:adjustViewBounds="true"
-        android:scaleType="fitXY"
+        android:layout_height="match_parent"
+        android:background="@mipmap/overlay"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/instructions"
-        android:layout_marginBottom="120dp"
-        android:background="@mipmap/overlay"/>
-
-    <Button
-        android:id="@+id/btn_restart"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@id/motionInstruction"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"
-        android:visibility="gone"
-        android:text="Restart" />
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <TextView
         android:id="@+id/motionInstruction"
@@ -58,7 +44,7 @@
         android:gravity="center"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:layout_marginBottom="40dp"/>
+        android:layout_marginBottom="32dp"/>
 
     <TextView
         android:id="@+id/instructions"
@@ -72,5 +58,10 @@
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginBottom="40dp"/>
+
+    <include
+        android:id="@+id/progress_bar"
+        android:visibility="gone"
+        layout="@layout/progress_bar"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
